@@ -1,15 +1,44 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue' /* 这里是引入vuejs文件 */
-import Home from './pages/home' /* 这里是引入同目录下的App.vue模块 */
-import router from './router' /* 这里是引入vue的路由 */
+import Vue from 'vue';
+import iView from 'iview';
+import {router} from './router/index';
+import {appRouter} from './router/router';
+import store from './store';
+import App from './app.vue';
+import '@/locale';
+import 'iview/dist/styles/iview.css';
+import VueI18n from 'vue-i18n';
+import util from './libs/util';
 
-Vue.config.productionTip = false
+Vue.use(VueI18n);
+Vue.use(iView);
 
-/* eslint-disable no-new */
 new Vue({
-  el: '#app', /* 定义作用范围就是index.html里的id为app的范围内 */
-  router, /* 引入路由 */
-  components: { Home }, /* 注册引入的组件App.vue */
-  template: '<Home/>' /* 给Vue实例初始一个App组件作为template 相当于默认组件 */
-})
+    el: '#app',
+    router: router,
+    store: store,
+    render: h => h(App),
+    data: {
+        currentPageName: ''
+    },
+    mounted () {
+        this.currentPageName = this.$route.name;
+        // 显示打开的页面的列表
+        this.$store.commit('setOpenedList');
+        this.$store.commit('initCachepage');
+        // 权限菜单过滤相关
+        this.$store.commit('updateMenulist');
+        // iview-admin检查更新
+        util.checkUpdate(this);
+    },
+    created () {
+        let tagsList = [];
+        appRouter.map((item) => {
+            if (item.children.length <= 1) {
+                tagsList.push(item.children[0]);
+            } else {
+                tagsList.push(...item.children);
+            }
+        });
+        this.$store.commit('setTagsList', tagsList);
+    }
+});
